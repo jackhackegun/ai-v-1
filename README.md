@@ -63,9 +63,24 @@ how to host it publicly.
 ### Deployment
 
 `ai‑v‑1` can be deployed to any platform that can run a Python web
-application, such as Heroku, Render or your own server.  When deploying
-publicly, remember to set `debug=False` and ensure the database file is
-stored in a persistent location.
+application, such as Heroku, Render or your own server.  When deployingp
+`ai-v-1` can be deployed to any platform that can run a Python web application, including free hosting services like [Render](https://render.com), [Replit](https://replit.com) or [Railway](https://railway.app). A typical deployment workflow on Render is:
+
+1. Fork this repository to your own GitHub account.
+2. Create a free account on Render.com and choose "New Web Service".
+3. Connect your GitHub repository when prompted.
+4. Set the build command to `pip install -r requirements.txt` and the start command to `python app.py`.
+5. Select a Python environment (e.g. Python 3) and deploy. Render will build the container and provide a public URL once ready.
+
+On Heroku, you can deploy using the included **Procfile**:
+
+1. Ensure the Heroku CLI is installed and you are logged in.
+2. Run `heroku create` in the project root to create a new app.
+3. Run `git push heroku main` to push your code to Heroku.
+4. Open the URL provided by Heroku to access the chatbot.
+
+When deploying publicly, remember to set `debug=False` in `app.py` and ensure the SQLite database file is stored in a persistent location.
+cation.
 
 ## Limitations and Future Work
 
