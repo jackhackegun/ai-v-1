@@ -1,51 +1,62 @@
-/*
- * Front‑end script for the ai‑v‑1 chatbot.
- *
- * This script listens for click events on the send button and the Enter key
- * within the input box, appends the user's message to the chat, makes a
- * POST request to the `/chat` endpoint, and appends the AI's response.
- */
-
 document.addEventListener('DOMContentLoaded', () => {
-  const chatContainer = document.getElementById('chat-container');
-  const messageInput = document.getElementById('message-input');
-  const sendBtn = document.getElementById('send-btn');
+  const form   = document.getElementById('chat-form');
+  const input  = document.getElementById('user-input');
+  const sendBtn= document.getElementById('send-btn');
+  const chat   = document.getElementById('chat-container');
 
-  function appendMessage(text, className) {
-    const msgElem = document.createElement('div');
-    msgElem.classList.add('message', className);
-    msgElem.textContent = text;
-    chatContainer.appendChild(msgElem);
-    // Scroll to bottom
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+  if (!form || !input || !sendBtn || !chat) {
+    console.error('Required elements not found. Check element IDs in HTML.');
+    return;
   }
 
-  async function sendMessage() {
-    const text = messageInput.value.trim();
+  const append = (who, text) => {
+    const row = document.createElement('div');
+    row.classList.add('message');
+    row.classList.add(who);
+    row.textContent = text;
+    chat.appendChild(row);
+    chat.scrollTop = chat.scrollHeight;
+  };
+
+  const send = async () => {
+    const text = input.value.trim();
     if (!text) return;
-    appendMessage(text, 'user');
-    messageInput.value = '';
+    input.value = '';
+    append('user', text);
+
+    sendBtn.disabled = true;
     try {
-      const response = await fetch('/chat', {
+      const res = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text })
       });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      appendMessage(data.response, 'bot');
-    } catch (err) {
-      appendMessage('Error: ' + err.message, 'bot');
-    }
-  }
 
-  sendBtn.addEventListener('click', sendMessage);
-  messageInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      sendMessage();
+      if (!res.ok) {
+        append('bot', `오류: 서버 상태 ${res.status}`);
+        return;
+      }
+
+      const data = await res.json();
+      const reply = data.reply ?? data.response ?? '(응답 없음)';
+      append('bot', reply);
+    } catch (e) {
+      append('bot', `네트워크 오류: ${e.message}`);
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  };
+
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    send();
+  });
+
+  input.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && !ev.shiftKey) {
+      ev.preventDefault();
+      form.requestSubmit();
     }
   });
 });
